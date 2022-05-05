@@ -1,0 +1,1 @@
+-- fill dm_rfm_segments table
