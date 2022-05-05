@@ -19,19 +19,21 @@
 
 ## 1.2. Источники данных
 
-Требуется сделать представления в схему analysis от таблиц в схеме production.
+Требуется сделать представление analysis.orders от таблиц в схеме production.
 
-Думаю, можно не включать в представления ненужные поля и записи.
+Необходимы такие поля в источниках:
 
-Нужные - такие:
-
-* production.users: id (int4)
-* production.orders: order_id (int4), user_id (int4), order_ts (timestamp), cost (numeric(19,5)), status (int4)
-* production.orderstatuses: id (int4), key (varchar(255))
-
-И то: orderstatuses необходима только для того, чтобы отсечь записи во view-хе analysis.orders по статусу Closed
-
-Соотв. в схеме analysis необходимы два представления: users и orders.
+* production.users:
+  * id (int4)
+* production.orders:
+  * order_id (int4),
+  * user_id (int4),
+  * order_ts (timestamp),
+  * cost (numeric(19,5)),
+  * status (int4)
+* production.orderstatuses:
+  * id (int4),
+  * key (varchar(255))
 
 ## 1.3. Качество исходных данных
 
@@ -39,11 +41,16 @@
 
 * production.orders имеет constraint orders_check CHECK ((cost = (payment + bonus_payment))), соотв. смело используем поле cost в качестве стоимости заказа
 
-* production.orders не имеет FK на users и orderstatuses, но у нас всё равно будет INNER JOIN при построении представлений
+* production.orders не имеет FK на users и orderstatuses, но у нас всё равно будет INNER JOIN при построении представления
 
-* заказы с нолевой стоимостью?
+* заказы с нолевой стоимостью:
 
-select count(*) from production.orders where cost = 0; Ответ: 0.<br/>
+```
+select count(*) from production.orders where cost <= 0;
+
+-- 0 штук
+```
+
 Но всё равно отсечём при построении представления по фильтру "больше ноля".
 
 * Типы у всех полей подходящие
@@ -52,10 +59,6 @@ select count(*) from production.orders where cost = 0; Ответ: 0.<br/>
   * Дата заказа - timestamp.
 
 ## 1.4. Подготовка витрины
-
-* Делаем представление analysis.users
-
-/src/users.ddl.sql
 
 * Делаем представление analysis.orders
 
