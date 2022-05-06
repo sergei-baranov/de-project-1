@@ -13,17 +13,24 @@ WITH cte_statuses AS (
     FROM
         production.orderstatuslog
 )
+, cte_closed_orders AS (
+    SELECT
+        user_id,
+        cost,
+        order_ts
+    FROM
+        production.orders o
+        INNER JOIN cte_statuses cs ON cs.order_id = o.order_id
+        INNER JOIN production.orderstatuses s ON s.id = cs.status
+    WHERE
+        s.key = 'Closed'
+        AND EXTRACT('year' FROM o.order_ts) >= 2021.0
+)
 SELECT
     u.id                                  as user_id,
     COALESCE(o.cost, 0)                   as cost,
     COALESCE(o.order_ts, to_timestamp(1)) as ts
 FROM
     production.users u
-    LEFT JOIN production.orders o ON o.user_id = u.id
-    LEFT JOIN cte_statuses cs ON cs.order_id = o.order_id
-    LEFT JOIN production.orderstatuses s ON s.id = cs.status
-WHERE
-    (s.key IS NULL OR s.key = 'Closed')
-    AND (o.cost IS NULL OR o.cost > 0.0)
-    AND (o.order_ts IS NULL OR EXTRACT('year' FROM o.order_ts) >= 2021.0)
+    LEFT JOIN cte_closed_orders o ON o.user_id = u.id
 ;
