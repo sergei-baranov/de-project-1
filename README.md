@@ -42,8 +42,6 @@
 
 * production.orders имеет constraint orders_check CHECK ((cost = (payment + bonus_payment))), соотв. смело используем поле cost в качестве стоимости заказа
 
-* production.orders не имеет FK на users и orderstatuses, ну дадим INNER JOIN на статусы
-
 * заказы с нолевой стоимостью:
 
 ```
